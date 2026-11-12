@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Quản Lý Học Sinh{% endblock %} - {{ settings.get('school_name', 'Hệ Thống Quản Lý Học Sinh') }}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+<div class="app-wrapper">
+    <!-- SIDEBAR -->
+    <aside class="app-sidebar">
+        <div class="sidebar-header">
+            <a href="{{ url_for('dashboard') }}" class="sidebar-brand">
+                <i class="bi bi-mortarboard-fill text-primary"></i>
+                <span>SchoolFlow</span>
+            </a>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="menu-category">Chung</li>
+            <li class="menu-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <a href="{{ url_for('dashboard') }}">
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    <span>Tổng quan (Dashboard)</span>
+                </a>
+            </li>
+
+            <li class="menu-category">Học Sinh & Lớp Học</li>
+            <li class="menu-item {% if request.endpoint in ['student_list', 'student_detail', 'student_edit'] %}active{% endif %}">
+                <a href="{{ url_for('student_list') }}">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Hồ sơ Học sinh</span>
+                </a>
+            </li>
+            <li class="menu-item {% if request.endpoint == 'student_create' %}active{% endif %}">
+                <a href="{{ url_for('student_create') }}">
+                    <i class="bi bi-person-plus-fill"></i>
+                    <span>Thêm học sinh mới</span>
+                </a>
+            </li>
+            <li class="menu-item {% if request.endpoint == 'student_import' %}active{% endif %}">
+                <a href="{{ url_for('student_import') }}">
+                    <i class="bi bi-file-earmark-spreadsheet-fill"></i>
+                    <span>Nhập từ Excel</span>
+                </a>
+            </li>
+            <li class="menu-item {% if request.endpoint in ['classroom_list', 'classroom_detail'] %}active{% endif %}">
+                <a href="{{ url_for('classroom_list') }}">
+                    <i class="bi bi-building"></i>
+                    <span>Danh sách Lớp học</span>
+                </a>
+            </li>
+
+            <li class="menu-category">Học Tập & Điểm Số</li>
+            <li class="menu-item {% if request.endpoint == 'grade_list' %}active{% endif %}">
+                <a href="{{ url_for('grade_list') }}">
+                    <i class="bi bi-journal-check"></i>
+                    <span>Sổ điểm môn học</span>
+                </a>
+            </li>
+            <li class="menu-item {% if request.endpoint == 'grade_input' %}active{% endif %}">
+                <a href="{{ url_for('grade_input') }}">
+                    <i class="bi bi-pencil-square"></i>
+                    <span>Nhập điểm nhanh</span>
+                </a>
+            </li>
+
+            <li class="menu-category">Nề Nếp & Chuyên Cần</li>
+            <li class="menu-item {% if request.endpoint == 'attendance_index' %}active{% endif %}">
+                <a href="{{ url_for('attendance_index') }}">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span>Điểm danh hàng ngày</span>
+                </a>
+            </li>
+            <li class="menu-item {% if request.endpoint == 'attendance_report' %}active{% endif %}">
+                <a href="{{ url_for('attendance_report') }}">
+                    <i class="bi bi-bar-chart-line-fill"></i>
+                    <span>Báo cáo chuyên cần</span>
+                </a>
+            </li>
+
+            <li class="menu-category">Sổ Đầu Bài & Thi Đua</li>
+            <li class="menu-item {% if request.endpoint in ['class_diary_index', 'class_diary_input'] %}active{% endif %}">
+                <a href="{{ url_for('class_diary_index') }}">
+                    <i class="bi bi-journal-bookmark-fill text-info"></i>
+                    <span>Sổ Đầu Bài (T2 - T7)</span>
+                </a>
+            </li>
+            <li class="menu-item {% if request.endpoint == 'class_diary_ranking' %}active{% endif %}">
+                <a href="{{ url_for('class_diary_ranking') }}">
+                    <i class="bi bi-trophy-fill text-warning"></i>
+                    <span>Thi Đua 33 Lớp</span>
+                </a>
+            </li>
+
+            <li class="menu-category">Quản Trị</li>
+            <li class="menu-item {% if request.endpoint == 'subject_list' %}active{% endif %}">
+                <a href="{{ url_for('subject_list') }}">
+                    <i class="bi bi-book-fill"></i>
+                    <span>Danh mục Môn học</span>
+                </a>
+            </li>
+            <li class="menu-item {% if request.endpoint == 'settings_page' %}active{% endif %}">
+                <a href="{{ url_for('settings_page') }}">
+                    <i class="bi bi-gear-fill"></i>
+                    <span>Cài đặt Trường học</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- MAIN APP AREA -->
+    <div class="app-main">
+        <!-- TOPBAR -->
+        <header class="app-topbar">
+            <div class="school-meta">
+                <span class="school-name">
+                    <i class="bi bi-building me-1"></i> {{ settings.get('school_name', 'Trường THPT') }}
+                </span>
+                <span class="badge-academic-year">
+                    Năm học: {{ current_year.name if current_year else settings.get('current_academic_year', '2026-2027') }} | HK {{ settings.get('current_semester', '1') }}
+                </span>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-muted small">
+                    <i class="bi bi-calendar3 me-1"></i> {{ today_date | format_date }}
+                </span>
+                <a href="{{ url_for('student_create') }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-lg me-1"></i> Thêm HS
+                </a>
+            </div>
+        </header>
+
+        <!-- FLASH NOTIFICATIONS -->
+        <div class="container-fluid px-4 pt-3 no-print">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                            <i class="bi {% if category == 'success' %}bi-check-circle-fill{% elif category == 'danger' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- MAIN PAGE CONTENT -->
+        <main class="app-content">
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="text-center py-3 text-muted small border-top bg-white no-print">
+            <span>&copy; 2026 Hệ thống Quản Lý Học Sinh Trường Học &bull; {{ settings.get('school_name', '') }}</span>
+        </footer>
+    </div>
+</div>
+
+<!-- Bootstrap 5 Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Custom JS -->
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Sổ Điểm Môn Học{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="fw-bold mb-1">Sổ Điểm Môn Học</h3>
+        <p class="text-muted mb-0">Theo dõi điểm số thường xuyên, giữa kỳ và cuối kỳ theo môn học</p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if selected_class_id and selected_subject_id %}
+        <a href="{{ url_for('grade_export_subject', class_id=selected_class_id, subject_id=selected_subject_id, semester=semester) }}" class="btn btn-outline-success">
+            <i class="bi bi-file-earmark-excel me-1"></i> Xuất bảng điểm Excel
+        </a>
+        <a href="{{ url_for('grade_input', class_id=selected_class_id, subject_id=selected_subject_id, semester=semester) }}" class="btn btn-primary">
+            <i class="bi bi-pencil-square me-1"></i> Vào nhập điểm nhanh
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- THANH CHỌN LỚP - MÔN - HỌC KỲ -->
+<div class="card border-0 shadow-sm rounded-3 p-3 mb-4 bg-white">
+    <form method="GET" action="{{ url_for('grade_list') }}" class="row g-3 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label small fw-bold">Chọn Lớp Học</label>
+            <select name="class_id" class="form-select" onchange="this.form.submit()">
+                {% for c in classes %}
+                <option value="{{ c.id }}" {% if selected_class_id == c.id %}selected{% endif %}>
+                    Lớp {{ c.name }} (Khối {{ c.grade_level }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label small fw-bold">Chọn Môn Học</label>
+            <select name="subject_id" class="form-select" onchange="this.form.submit()">
+                {% for s in subjects %}
+                <option value="{{ s.id }}" {% if selected_subject_id == s.id %}selected{% endif %}>
+                    {{ s.name }} ({{ s.code }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-bold">Học Kỳ</label>
+            <select name="semester" class="form-select" onchange="this.form.submit()">
+                <option value="1" {% if semester == 1 %}selected{% endif %}>Học kỳ I</option>
+                <option value="2" {% if semester == 2 %}selected{% endif %}>Học kỳ II</option>
+            </select>
+        </div>
+        <div class="col-md-1">
+            <button type="submit" class="btn btn-secondary w-100" title="Tải lại">
+                <i class="bi bi-arrow-repeat"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- BẢNG ĐIỂM CHI TIẾT -->
+<div class="card-table">
+    <div class="p-3 d-flex justify-content-between align-items-center border-bottom bg-white">
+        <div>
+            <h5 class="fw-bold mb-0 text-primary">
+                <i class="bi bi-journal-text me-2"></i>Bảng Điểm Môn {{ current_subject.name if current_subject else '' }} - Lớp {{ current_class.name if current_class else '' }}
+            </h5>
+            <small class="text-muted">Hệ số tính: Thường xuyên (x1), Giữa kỳ (x2), Cuối kỳ (x3)</small>
+        </div>
+        <span class="badge bg-light text-dark border px-3 py-2">
+            Sĩ số: {{ grades_data | length }} học sinh
+        </span>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle text-center">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">STT</th>
+                    <th style="width: 100px;">Mã HS</th>
+                    <th class="text-start">Họ và Tên</th>
+                    <th>TX 1</th>
+                    <th>TX 2</th>
+                    <th>TX 3</th>
+                    <th>TX 4</th>
+                    <th class="text-primary">Giữa kỳ (x2)</th>
+                    <th class="text-danger">Cuối kỳ (x3)</th>
+                    <th class="bg-light fw-bold">ĐTB Môn</th>
+                    <th class="text-end" style="width: 90px;">Học bạ</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for g in grades_data %}
+                <tr>
+                    <td class="text-muted">{{ loop.index }}</td>
+                    <td class="fw-bold text-muted">{{ g.student_code }}</td>
+                    <td class="text-start fw-semibold">
+                        <a href="{{ url_for('student_detail', student_id=g.student_id) }}" class="text-decoration-none text-dark">
+                            {{ g.full_name }}
+                        </a>
+                    </td>
+                    <td>{{ g.tx1 | grade_format }}</td>
+                    <td>{{ g.tx2 | grade_format }}</td>
+                    <td>{{ g.tx3 | grade_format }}</td>
+                    <td>{{ g.tx4 | grade_format }}</td>
+                    <td class="fw-semibold text-primary">{{ g.gk | grade_format }}</td>
+                    <td class="fw-semibold text-danger">{{ g.ck | grade_format }}</td>
+                    <td class="bg-light fw-bold {% if g.average and g.average < 5.0 %}text-danger{% elif g.average and g.average >= 8.0 %}text-success{% else %}text-primary{% endif %}">
+                        {{ g.average | grade_format }}
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('grade_report_card', student_id=g.student_id, semester=semester) }}" class="btn btn-sm btn-outline-secondary" title="In phiếu báo điểm">
+                            <i class="bi bi-printer"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="11" class="text-center py-5 text-muted">
+                        Chưa có học sinh nào trong lớp này.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

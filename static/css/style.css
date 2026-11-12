@@ -1,0 +1,317 @@
+:root {
+    --primary-color: #1e3a8a;
+    --primary-light: #3b82f6;
+    --primary-dark: #172554;
+    --secondary-color: #0f766e;
+    --sidebar-width: 260px;
+    --bg-main: #f8fafc;
+    --card-bg: #ffffff;
+    --text-primary: #1e293b;
+    --text-muted: #64748b;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    min-height: 100vh;
+}
+
+/* Layout Wrapper */
+.app-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.app-sidebar {
+    width: var(--sidebar-width);
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    color: #e2e8f0;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.sidebar-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-brand {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 1rem 0;
+    margin: 0;
+}
+
+.menu-category {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+    padding: 0.75rem 1.5rem 0.25rem;
+    font-weight: 600;
+}
+
+.menu-item a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 1.5rem;
+    color: #cbd5e1;
+    text-decoration: none;
+    font-size: 0.92rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+}
+
+.menu-item a:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.menu-item.active a {
+    color: #ffffff;
+    background: rgba(59, 130, 246, 0.2);
+    border-left-color: #3b82f6;
+    font-weight: 600;
+}
+
+.menu-item i {
+    font-size: 1.15rem;
+    width: 22px;
+    text-align: center;
+}
+
+/* Main Content Area */
+.app-main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* Topbar */
+.app-topbar {
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.85rem 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.school-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.school-name {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 1.05rem;
+}
+
+.badge-academic-year {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid #bfdbfe;
+}
+
+/* Content Container */
+.app-content {
+    padding: 1.75rem;
+    flex-grow: 1;
+}
+
+/* Cards & Statistics */
+.stat-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.35rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    transition: transform 0.2s, box-shadow 0.2s;
+    height: 100%;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+}
+
+.icon-blue { background: #dbeafe; color: #1d4ed8; }
+.icon-green { background: #dcfce7; color: #15803d; }
+.icon-purple { background: #f3e8ff; color: #7e22ce; }
+.icon-orange { background: #ffedd5; color: #c2410c; }
+
+.stat-number {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #0f172a;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* Custom Table Styles */
+.card-table {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.card-table .table {
+    margin-bottom: 0;
+}
+
+.card-table .table th {
+    background-color: #f8fafc;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #475569;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.85rem 1rem;
+    white-space: nowrap;
+}
+
+.card-table .table td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* Badges */
+.badge-soft-success {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+.badge-soft-info {
+    background-color: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+}
+.badge-soft-warning {
+    background-color: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+.badge-soft-danger {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+.badge-soft-secondary {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+/* Grade input inputs */
+.grade-input {
+    width: 65px;
+    text-align: center;
+    font-weight: 600;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 0.35rem 0.2rem;
+    transition: border-color 0.15s;
+}
+
+.grade-input:focus {
+    border-color: #3b82f6;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.grade-cell-avg {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+/* Attendance toggle radio buttons */
+.att-radio-group .btn-check:checked + .btn-outline-success {
+    background-color: #16a34a;
+    color: white;
+}
+.att-radio-group .btn-check:checked + .btn-outline-warning {
+    background-color: #f59e0b;
+    color: white;
+}
+.att-radio-group .btn-check:checked + .btn-outline-danger {
+    background-color: #dc2626;
+    color: white;
+}
+.att-radio-group .btn-check:checked + .btn-outline-info {
+    background-color: #0284c7;
+    color: white;
+}
+
+/* Print CSS */
+@media print {
+    body {
+        background: #ffffff !important;
+        font-size: 12pt;
+    }
+    .app-sidebar, .app-topbar, .no-print, .btn, .breadcrumb {
+        display: none !important;
+    }
+    .app-wrapper {
+        display: block !important;
+    }
+    .app-main {
+        padding: 0 !important;
+    }
+    .app-content {
+        padding: 0 !important;
+    }
+    .card, .card-table {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    .table th, .table td {
+        border: 1px solid #333 !important;
+        padding: 6px !important;
+    }
+}

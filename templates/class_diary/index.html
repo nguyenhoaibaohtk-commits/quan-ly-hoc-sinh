@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}Sổ Đầu Bài & Chấm Điểm Tiết Học{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="fw-bold mb-1">Sổ Đầu Bài & Chấm Điểm Tiết Học (Thang Điểm 10)</h3>
+        <p class="text-muted mb-0">Theo dõi tiến độ bài giảng, nề nếp và chấm điểm từng tiết học từ <strong>Thứ Hai đến Thứ Bảy</strong></p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('class_diary_ranking', date=base_date) }}" class="btn btn-outline-warning text-dark fw-bold">
+            <i class="bi bi-trophy-fill text-warning me-1"></i> Bảng Thi Đua 33 Lớp
+        </a>
+        {% if selected_class_id %}
+        <a href="{{ url_for('class_diary_export', class_id=selected_class_id, date=base_date) }}" class="btn btn-outline-success">
+            <i class="bi bi-file-earmark-excel me-1"></i> Xuất Sổ Đầu Bài Excel
+        </a>
+        <a href="{{ url_for('class_diary_input', class_id=selected_class_id, date=base_date) }}" class="btn btn-primary">
+            <i class="bi bi-pencil-square me-1"></i> Chấm điểm / Ghi bài học
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- BỘ LỌC CHỌN LỚP VÀ TUẦN LỄ -->
+<div class="card border-0 shadow-sm rounded-3 p-3 mb-4 bg-white">
+    <form method="GET" action="{{ url_for('class_diary_index') }}" class="row g-3 align-items-end">
+        <div class="col-md-5">
+            <label class="form-label small fw-bold">Chọn Lớp Học (33 lớp)</label>
+            <select name="class_id" class="form-select" onchange="this.form.submit()">
+                {% for c in classes %}
+                <option value="{{ c.id }}" {% if selected_class_id == c.id %}selected{% endif %}>
+                    Lớp {{ c.name }} (Khối {{ c.grade_level }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label small fw-bold">Chọn Ngày Trong Tuần (Tự động lấy Thứ 2 &rarr; Thứ 7)</label>
+            <input type="date" name="date" class="form-control" value="{{ base_date }}" onchange="this.form.submit()">
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-secondary w-100">
+                <i class="bi bi-arrow-repeat me-1"></i> Tải Sổ Đầu Bài
+            </button>
+        </div>
+    </form>
+</div>
+
+{% if diary_data %}
+{% set summary = diary_data.summary %}
+{% set classroom = diary_data.classroom %}
+{% set week_days = diary_data.week_days %}
+{% set grid = diary_data.grid %}
+
+<!-- TỔNG KẾT TUẦN CỦA LỚP -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card d-flex align-items-center gap-3">
+            <div class="stat-icon icon-blue">
+                <i class="bi bi-star-fill"></i>
+            </div>
+            <div>
+                <div class="stat-number text-primary">{{ summary.avg_score }}</div>
+                <div class="stat-label">Điểm Trung Bình Tiết (Thang 10)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card d-flex align-items-center gap-3">
+            <div class="stat-icon icon-purple">
+                <i class="bi bi-calculator"></i>
+            </div>
+            <div>
+                <div class="stat-number">{{ summary.total_score }}</div>
+                <div class="stat-label">Tổng Điểm Tuần ({{ summary.scored_periods }} tiết)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card d-flex align-items-center gap-3">
+            <div class="stat-icon icon-green">
+                <i class="bi bi-hand-thumbs-up-fill"></i>
+            </div>
+            <div>
+                <div class="stat-number text-success">{{ summary.count_tot }}</div>
+                <div class="stat-label">Tiết Tốt (9.0 - 10 điểm)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card d-flex align-items-center gap-3">
+            <div class="stat-icon icon-orange">
+                <i class="bi bi-flag-fill"></i>
+            </div>
+            <div>
+                <div class="stat-number text-warning">{{ summary.count_kha }} <span class="fs-6 text-muted font-normal">/ TB: {{ summary.count_tb }} / Y: {{ summary.count_yeu }}</span></div>
+                <div class="stat-label">Tiết Khá / TB / Yếu</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- LƯỚI SỔ ĐẦU BÀI: TỪ THỨ HAI ĐẾN THỨ BẢY -->
+<div class="card-table mb-4">
+    <div class="p-3 d-flex justify-content-between align-items-center border-bottom bg-white">
+        <div>
+            <h5 class="fw-bold mb-0 text-primary">
+                <i class="bi bi-journal-bookmark-fill me-2"></i>Sổ Đầu Bài: Lớp {{ classroom.name }} - GVCN: {{ classroom.teacher_name or 'Chưa phân công' }}
+            </h5>
+            <small class="text-muted">
+                Tuần lễ: Từ Thứ Hai ({{ week_days[0].formatted_date }}) đến Thứ Bảy ({{ week_days[-1].formatted_date }})
+            </small>
+        </div>
+        <span class="badge bg-light text-dark border px-3 py-2">
+            Đã chấm: {{ summary.scored_periods }} / 30 tiết
+        </span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead class="text-center">
+                <tr>
+                    <th style="width: 130px;">Thứ / Ngày</th>
+                    <th style="width: 70px;">Tiết</th>
+                    <th style="width: 140px;" class="text-start">Môn học</th>
+                    <th class="text-start">Tên bài dạy / Nội dung công việc</th>
+                    <th style="width: 110px;">Vắng</th>
+                    <th style="width: 110px;">Điểm (thang 10)</th>
+                    <th style="width: 90px;">Xếp loại</th>
+                    <th style="width: 160px;" class="text-start">Giáo viên</th>
+                    <th class="text-start" style="width: 220px;">Nhận xét tiết học</th>
+                    <th style="width: 70px;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for wd in week_days %}
+                {% set d_str = wd.date %}
+                {% for p in range(1, 6) %}
+                {% set r = grid[d_str][p] %}
+                <tr>
+                    {% if p == 1 %}
+                    <td rowspan="5" class="text-center align-middle bg-light fw-bold border-end">
+                        <div class="fs-6 text-primary">{{ wd.day_name }}</div>
+                        <div class="small text-muted">{{ wd.formatted_date }}</div>
+                    </td>
+                    {% endif %}
+                    <td class="text-center fw-bold text-muted bg-light">Tiết {{ p }}</td>
+                    <td class="text-start">
+                        {% if r and r.subject_name %}
+                            <span class="fw-semibold text-dark">{{ r.subject_name }}</span>
+                        {% else %}
+                            <span class="text-muted fst-italic">---</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-start">
+                        {% if r and r.lesson_name %}
+                            <span>{{ r.lesson_name }}</span>
+                        {% else %}
+                            <span class="text-muted fst-italic">Chưa vào sổ bài dạy</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center small">
+                        {% if r and r.absent_students and r.absent_students != 'Không' %}
+                            <span class="badge badge-soft-danger">{{ r.absent_students }}</span>
+                        {% else %}
+                            <span class="text-muted">Không</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if r and r.score is not none %}
+                            <span class="badge fs-6 px-2 py-1 {% if r.score >= 9.0 %}bg-success{% elif r.score >= 7.0 %}bg-primary{% elif r.score >= 5.0 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                                {{ r.score }}
+                            </span>
+                        {% else %}
+                            <span class="badge bg-light text-muted border">Chưa chấm</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if r and r.classification %}
+                            <span class="fw-semibold {% if r.classification == 'Tốt' %}text-success{% elif r.classification == 'Khá' %}text-primary{% elif r.classification == 'Trung bình' %}text-warning{% else %}text-danger{% endif %}">
+                                {{ r.classification }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted">---</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-start small">
+                        {{ r.teacher_name if r and r.teacher_name else '---' }}
+                    </td>
+                    <td class="text-start small text-truncate" style="max-width: 200px;" title="{{ r.note if r and r.note else '' }}">
+                        {{ r.note if r and r.note else '---' }}
+                    </td>
+                    <td class="text-center">
+                        <a href="{{ url_for('class_diary_input', class_id=classroom.id, date=d_str, period=p) }}" class="btn btn-sm btn-outline-primary" title="Chấm điểm / Ghi bài">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

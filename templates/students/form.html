@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{{ url_for('student_list') }}">Hồ sơ Học sinh</a></li>
+            <li class="breadcrumb-item active">{{ title }}</li>
+        </ol>
+    </nav>
+    <h3 class="fw-bold">{{ title }}</h3>
+</div>
+
+<div class="card border-0 shadow-sm rounded-3 p-4 bg-white" style="max-width: 900px;">
+    <form method="POST">
+        <h5 class="fw-bold text-primary mb-3 border-bottom pb-2">
+            <i class="bi bi-person-badge-fill me-2"></i>1. Thông Tin Cá Nhân
+        </h5>
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Mã học sinh <span class="text-muted small">(Tự sinh nếu để trống)</span></label>
+                <input type="text" name="student_code" class="form-control" placeholder="VD: HS26001" value="{{ student.student_code if student else '' }}">
+            </div>
+            <div class="col-md-5">
+                <label class="form-label fw-semibold">Họ và tên học sinh <span class="text-danger">*</span></label>
+                <input type="text" name="full_name" class="form-control" required placeholder="VD: Nguyễn Văn An" value="{{ student.full_name if student else '' }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Giới tính</label>
+                <select name="gender" class="form-select">
+                    <option value="Nam" {% if student and student.gender == 'Nam' %}selected{% endif %}>Nam</option>
+                    <option value="Nữ" {% if student and student.gender == 'Nữ' %}selected{% endif %}>Nữ</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Ngày sinh</label>
+                <input type="date" name="date_of_birth" class="form-control" value="{{ student.date_of_birth if student else '' }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Xếp vào lớp</label>
+                <select name="class_id" class="form-select">
+                    <option value="">-- Chưa xếp lớp --</option>
+                    {% for c in classes %}
+                    <option value="{{ c.id }}" {% if student and student.class_id == c.id %}selected{% endif %}>
+                        Lớp {{ c.name }} (Khối {{ c.grade_level }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Trạng thái học tập</label>
+                <select name="status" class="form-select">
+                    <option value="Đang học" {% if not student or student.status == 'Đang học' %}selected{% endif %}>Đang học</option>
+                    <option value="Chuyển trường" {% if student and student.status == 'Chuyển trường' %}selected{% endif %}>Chuyển trường</option>
+                    <option value="Thôi học" {% if student and student.status == 'Thôi học' %}selected{% endif %}>Thôi học</option>
+                    <option value="Tốt nghiệp" {% if student and student.status == 'Tốt nghiệp' %}selected{% endif %}>Tốt nghiệp</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Số điện thoại học sinh</label>
+                <input type="tel" name="phone" class="form-control" placeholder="VD: 0912345678" value="{{ student.phone if student else '' }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Email học sinh</label>
+                <input type="email" name="email" class="form-control" placeholder="VD: hocsinh@school.edu.vn" value="{{ student.email if student else '' }}">
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-semibold">Địa chỉ thường trú</label>
+                <input type="text" name="address" class="form-control" placeholder="Số nhà, đường phố, phường/xã, quận/huyện..." value="{{ student.address if student else '' }}">
+            </div>
+        </div>
+
+        <h5 class="fw-bold text-primary mb-3 border-bottom pb-2">
+            <i class="bi bi-people-fill me-2"></i>2. Thông Tin Phụ Huynh / Người Giám Hộ
+        </h5>
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Họ tên phụ huynh</label>
+                <input type="text" name="parent_name" class="form-control" placeholder="Họ tên bố / mẹ / người giám hộ" value="{{ student.parent_name if student else '' }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Số điện thoại phụ huynh <span class="text-danger">*</span></label>
+                <input type="tel" name="parent_phone" class="form-control" placeholder="Số điện thoại liên lạc khi cần" value="{{ student.parent_phone if student else '' }}">
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+            <a href="{{ url_for('student_list') }}" class="btn btn-light border px-4">Hủy bỏ</a>
+            <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-check-lg me-1"></i> Lưu thông tin học sinh
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

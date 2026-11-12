@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+
+{% block title %}Hồ sơ - {{ student.full_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('student_list') }}">Hồ sơ Học sinh</a></li>
+                <li class="breadcrumb-item active">{{ student.full_name }}</li>
+            </ol>
+        </nav>
+        <h3 class="fw-bold mb-0">Hồ Sơ Học Sinh: {{ student.full_name }}</h3>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('grade_report_card', student_id=student.id, semester=semester) }}" class="btn btn-outline-success">
+            <i class="bi bi-printer me-1"></i> In Phiếu Báo Điểm / Học Bạ
+        </a>
+        <a href="{{ url_for('student_edit', student_id=student.id) }}" class="btn btn-primary">
+            <i class="bi bi-pencil me-1"></i> Chỉnh sửa hồ sơ
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- CỘT TRÁI: THÔNG TIN CÁ NHÂN -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white text-center mb-4">
+            <div class="mb-3">
+                <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle shadow" style="width: 80px; height: 80px; font-size: 2rem; font-weight: bold;">
+                    {{ student.full_name.split()[-1][0] if student.full_name else 'H' }}
+                </div>
+            </div>
+            <h4 class="fw-bold mb-1">{{ student.full_name }}</h4>
+            <div class="text-muted mb-2">Mã HS: <span class="fw-bold text-primary">{{ student.student_code }}</span></div>
+            <div class="mb-3">
+                <span class="badge bg-light text-dark border px-3 py-2 fs-6">
+                    <i class="bi bi-building me-1"></i>Lớp: {{ student.class_name or 'Chưa xếp lớp' }}
+                </span>
+            </div>
+            <div>
+                {% if student.status == 'Đang học' %}
+                    <span class="badge badge-soft-success fs-6 px-3 py-1">Đang học</span>
+                {% else %}
+                    <span class="badge badge-soft-danger fs-6 px-3 py-1">{{ student.status }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white mb-4">
+            <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">
+                <i class="bi bi-person-lines-fill me-2"></i>Chi Tiết Lý Lịch
+            </h6>
+            <ul class="list-unstyled mb-0">
+                <li class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Giới tính:</span>
+                    <span class="fw-semibold">{{ student.gender }}</span>
+                </li>
+                <li class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Ngày sinh:</span>
+                    <span class="fw-semibold">{{ student.date_of_birth | format_date }}</span>
+                </li>
+                <li class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Số ĐT học sinh:</span>
+                    <span class="fw-semibold">{{ student.phone or '---' }}</span>
+                </li>
+                <li class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Email:</span>
+                    <span class="fw-semibold">{{ student.email or '---' }}</span>
+                </li>
+                <li class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Phụ huynh:</span>
+                    <span class="fw-semibold">{{ student.parent_name or '---' }}</span>
+                </li>
+                <li class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">SĐT Phụ huynh:</span>
+                    <span class="fw-semibold text-primary">{{ student.parent_phone or '---' }}</span>
+                </li>
+                <li class="py-2">
+                    <span class="text-muted d-block mb-1">Địa chỉ:</span>
+                    <span class="fw-semibold">{{ student.address or '---' }}</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- THỐNG KÊ CHUYÊN CẦN -->
+        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+            <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">
+                <i class="bi bi-calendar-check me-2"></i>Thống Kê Chuyên Cần
+            </h6>
+            <div class="row g-2 text-center">
+                <div class="col-6">
+                    <div class="p-2 border rounded bg-light">
+                        <small class="text-muted d-block">Có mặt</small>
+                        <h5 class="fw-bold text-success mb-0">{{ att_stats.present_count if att_stats else 0 }}</h5>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-2 border rounded bg-light">
+                        <small class="text-muted d-block">Đi trễ</small>
+                        <h5 class="fw-bold text-info mb-0">{{ att_stats.late_count if att_stats else 0 }}</h5>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-2 border rounded bg-light">
+                        <small class="text-muted d-block">Có phép</small>
+                        <h5 class="fw-bold text-warning mb-0">{{ att_stats.excused_absence_count if att_stats else 0 }}</h5>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-2 border rounded bg-light">
+                        <small class="text-muted d-block">Không phép</small>
+                        <h5 class="fw-bold text-danger mb-0">{{ att_stats.unexcused_absence_count if att_stats else 0 }}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CỘT PHẢI: BẢNG ĐIỂM VÀ ĐÁNH GIÁ -->
+    <div class="col-lg-8">
+        <!-- ĐÁNH GIÁ TỔNG KẾT HỌC KỲ -->
+        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-primary mb-0">
+                    <i class="bi bi-award-fill me-2"></i>Kết Quả Học Tập & Rèn Luyện
+                </h5>
+                <div class="btn-group btn-group-sm">
+                    <a href="{{ url_for('student_detail', student_id=student.id, semester=1) }}" class="btn btn-outline-primary {% if semester == 1 %}active{% endif %}">Học kỳ 1</a>
+                    <a href="{{ url_for('student_detail', student_id=student.id, semester=2) }}" class="btn btn-outline-primary {% if semester == 2 %}active{% endif %}">Học kỳ 2</a>
+                </div>
+            </div>
+
+            <div class="row g-3 text-center">
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light">
+                        <span class="text-muted small d-block">Điểm Trung Bình Các Môn (ĐTBhk)</span>
+                        <h3 class="fw-bold text-primary mb-0">
+                            {{ gpa if gpa is not none else '---' }}
+                        </h3>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light">
+                        <span class="text-muted small d-block">Xếp Loại Học Lực (TT 22)</span>
+                        <h3 class="fw-bold mb-0">
+                            {% if academic_rank == 'Tốt' %}
+                                <span class="text-success">{{ academic_rank }}</span>
+                            {% elif academic_rank == 'Khá' %}
+                                <span class="text-primary">{{ academic_rank }}</span>
+                            {% elif academic_rank == 'Đạt' %}
+                                <span class="text-warning">{{ academic_rank }}</span>
+                            {% else %}
+                                <span class="text-danger">{{ academic_rank }}</span>
+                            {% endif %}
+                        </h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BẢNG ĐIỂM CHI TIẾT TỪNG MÔN -->
+        <div class="card-table mb-4">
+            <div class="p-3 d-flex justify-content-between align-items-center border-bottom bg-white">
+                <h6 class="fw-bold mb-0">
+                    <i class="bi bi-table me-2 text-primary"></i>Bảng Điểm Chi Tiết - Học Kỳ {{ semester }}
+                </h6>
+                <a href="{{ url_for('grade_input', class_id=student.class_id, semester=semester) }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-pencil-square me-1"></i> Vào nhập điểm
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle text-center">
+                    <thead>
+                        <tr>
+                            <th class="text-start">Môn học</th>
+                            <th>TX 1</th>
+                            <th>TX 2</th>
+                            <th>TX 3</th>
+                            <th>TX 4</th>
+                            <th>Giữa kỳ (x2)</th>
+                            <th>Cuối kỳ (x3)</th>
+                            <th class="bg-light">ĐTB Môn</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in grades %}
+                        <tr>
+                            <td class="text-start fw-semibold">{{ g.subject_name }}</td>
+                            <td>{{ g.tx1 | grade_format }}</td>
+                            <td>{{ g.tx2 | grade_format }}</td>
+                            <td>{{ g.tx3 | grade_format }}</td>
+                            <td>{{ g.tx4 | grade_format }}</td>
+                            <td class="fw-semibold">{{ g.gk | grade_format }}</td>
+                            <td class="fw-semibold">{{ g.ck | grade_format }}</td>
+                            <td class="bg-light fw-bold {% if g.average and g.average < 5.0 %}text-danger{% elif g.average and g.average >= 8.0 %}text-success{% else %}text-primary{% endif %}">
+                                {{ g.average | grade_format }}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">Chưa có môn học nào được thiết lập.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- LỊCH SỬ ĐIỂM DANH GẦN ĐÂY -->
+        <div class="card-table">
+            <div class="p-3 border-bottom bg-white">
+                <h6 class="fw-bold mb-0">
+                    <i class="bi bi-clock-history me-2 text-primary"></i>Nhật Ký Điểm Danh Gần Đây
+                </h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Ngày</th>
+                            <th>Trạng thái</th>
+                            <th>Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in recent_attendance %}
+                        <tr>
+                            <td>{{ a.date | format_date }}</td>
+                            <td>
+                                {% if a.status == 'P' %}
+                                    <span class="badge badge-soft-success">Có mặt</span>
+                                {% elif a.status == 'CP' %}
+                                    <span class="badge badge-soft-warning">Nghỉ có phép</span>
+                                {% elif a.status == 'KP' %}
+                                    <span class="badge badge-soft-danger">Nghỉ không phép</span>
+                                {% elif a.status == 'T' %}
+                                    <span class="badge badge-soft-info">Đi trễ</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted">{{ a.note or '---' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center py-3 text-muted">Chưa có bản ghi điểm danh gần đây.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Cài Đặt Hệ Thống{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <h3 class="fw-bold mb-1">Cài Đặt Hệ Thống & Thông Tin Trường Học</h3>
+    <p class="text-muted">Cấu hình thông tin đơn vị trường học, năm học và học kỳ áp dụng</p>
+</div>
+
+<div class="card border-0 shadow-sm rounded-3 p-4 bg-white" style="max-width: 900px;">
+    <form method="POST">
+        <h5 class="fw-bold text-primary mb-3 border-bottom pb-2">
+            <i class="bi bi-building me-2"></i>1. Thông Tin Đơn Vị Trường Học
+        </h5>
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Tên trường học <span class="text-danger">*</span></label>
+                <input type="text" name="school_name" class="form-control" value="{{ settings_data.get('school_name', '') }}" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Họ tên Hiệu trưởng / Thủ trưởng đơn vị</label>
+                <input type="text" name="principal_name" class="form-control" value="{{ settings_data.get('principal_name', '') }}">
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-semibold">Địa chỉ trường</label>
+                <input type="text" name="school_address" class="form-control" value="{{ settings_data.get('school_address', '') }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Số điện thoại liên hệ</label>
+                <input type="tel" name="school_phone" class="form-control" value="{{ settings_data.get('school_phone', '') }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Email chính thức</label>
+                <input type="email" name="school_email" class="form-control" value="{{ settings_data.get('school_email', '') }}">
+            </div>
+        </div>
+
+        <h5 class="fw-bold text-primary mb-3 border-bottom pb-2">
+            <i class="bi bi-calendar3 me-2"></i>2. Năm Học & Học Kỳ Đang Áp Dụng
+        </h5>
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Năm học kích hoạt hiện tại</label>
+                <select name="active_year_id" class="form-select">
+                    {% for y in years %}
+                    <option value="{{ y.id }}" {% if y.is_active %}selected{% endif %}>{{ y.name }} {% if y.is_active %}(Đang kích hoạt){% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Học kỳ hiện tại</label>
+                <select name="current_semester" class="form-select">
+                    <option value="1" {% if settings_data.get('current_semester') == '1' %}selected{% endif %}>Học kỳ I</option>
+                    <option value="2" {% if settings_data.get('current_semester') == '2' %}selected{% endif %}>Học kỳ II</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Thêm năm học mới vào hệ thống (nếu có)</label>
+                <input type="text" name="new_year_name" class="form-control" placeholder="VD: 2027-2028">
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+            <button type="submit" class="btn btn-primary px-4 fw-bold">
+                <i class="bi bi-check-lg me-1"></i> Lưu toàn bộ cài đặt
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

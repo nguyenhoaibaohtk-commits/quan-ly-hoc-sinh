@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+
+{% block title %}Tổng Quan - Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Bảng Điều Khiển Tổng Quan</h3>
+        <p class="text-muted mb-0">Hệ thống theo dõi thông tin học sinh, lớp học và tiến độ đào tạo năm học {{ settings.get('current_academic_year', '2026-2027') }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('class_diary_index') }}" class="btn btn-outline-info text-dark fw-semibold">
+            <i class="bi bi-journal-bookmark me-1 text-primary"></i> Sổ Đầu Bài
+        </a>
+        <a href="{{ url_for('attendance_index') }}" class="btn btn-outline-primary">
+            <i class="bi bi-calendar-check me-1"></i> Điểm danh ngay
+        </a>
+        <a href="{{ url_for('grade_input') }}" class="btn btn-primary">
+            <i class="bi bi-pencil-square me-1"></i> Vào sổ điểm
+        </a>
+    </div>
+</div>
+
+<!-- THỐNG KÊ NHANH -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card d-flex align-items-center gap-3">
+            <div class="stat-icon icon-blue">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div>
+                <div class="stat-number">{{ active_students }}</div>
+                <div class="stat-label">Học sinh đang học (Tổng: {{ total_students }})</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card d-flex align-items-center gap-3">
+            <div class="stat-icon icon-green">
+                <i class="bi bi-building"></i>
+            </div>
+            <div>
+                <div class="stat-number">{{ total_classes }}</div>
+                <div class="stat-label">Lớp học đang quản lý</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card d-flex align-items-center gap-3">
+            <div class="stat-icon icon-purple">
+                <i class="bi bi-journal-bookmark-fill"></i>
+            </div>
+            <div>
+                <div class="stat-number">{{ total_subjects }}</div>
+                <div class="stat-label">Môn học trong chương trình</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card d-flex align-items-center gap-3">
+            <div class="stat-icon icon-orange">
+                <i class="bi bi-person-check-fill"></i>
+            </div>
+            <div>
+                <div class="stat-number">{{ att_today.present if att_today else 0 }}</div>
+                <div class="stat-label">Học sinh có mặt hôm nay</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BIỂU ĐỒ & CHUYÊN CẦN -->
+<div class="row g-4 mb-4">
+    <!-- Phân loại học lực -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-3 h-100 p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0 text-primary">
+                    <i class="bi bi-pie-chart-fill me-2"></i>Phân Loại Học Lực (TT 22)
+                </h5>
+                <span class="badge bg-light text-dark border">Học kỳ {{ settings.get('current_semester', '1') }}</span>
+            </div>
+            <div style="height: 260px;" class="d-flex align-items-center justify-content-center">
+                <canvas id="academicRankChart"></canvas>
+            </div>
+            <div class="d-flex justify-content-around text-center pt-3 border-top mt-2">
+                <div>
+                    <span class="badge bg-success mb-1">Tốt</span>
+                    <h6 class="fw-bold mb-0">{{ ranks['Tốt'] }} HS</h6>
+                </div>
+                <div>
+                    <span class="badge bg-primary mb-1">Khá</span>
+                    <h6 class="fw-bold mb-0">{{ ranks['Khá'] }} HS</h6>
+                </div>
+                <div>
+                    <span class="badge bg-warning text-dark mb-1">Đạt</span>
+                    <h6 class="fw-bold mb-0">{{ ranks['Đạt'] }} HS</h6>
+                </div>
+                <div>
+                    <span class="badge bg-danger mb-1">Chưa đạt</span>
+                    <h6 class="fw-bold mb-0">{{ ranks['Chưa đạt'] }} HS</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tình hình chuyên cần hôm nay -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-3 h-100 p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0 text-primary">
+                    <i class="bi bi-calendar-check-fill me-2"></i>Chuyên Cần Hôm Nay ({{ today_date | format_date }})
+                </h5>
+                <a href="{{ url_for('attendance_index') }}" class="btn btn-sm btn-link text-decoration-none">Xem chi tiết &rarr;</a>
+            </div>
+
+            <div class="p-3 bg-light rounded-3 mb-3">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="fw-semibold">Tổng lượt đã điểm danh:</span>
+                    <span class="fw-bold">{{ att_today.total if att_today else 0 }} học sinh</span>
+                </div>
+                <div class="progress" style="height: 12px;">
+                    {% set total_att = att_today.total if (att_today and att_today.total > 0) else 1 %}
+                    {% set p_pct = ((att_today.present if att_today else 0) / total_att * 100) | round(1) %}
+                    {% set cp_pct = ((att_today.excused if att_today else 0) / total_att * 100) | round(1) %}
+                    {% set kp_pct = ((att_today.unexcused if att_today else 0) / total_att * 100) | round(1) %}
+                    {% set t_pct = ((att_today.late if att_today else 0) / total_att * 100) | round(1) %}
+
+                    <div class="progress-bar bg-success" style="width: {{ p_pct }}%" title="Có mặt: {{ att_today.present if att_today else 0 }}"></div>
+                    <div class="progress-bar bg-warning" style="width: {{ cp_pct }}%" title="Có phép: {{ att_today.excused if att_today else 0 }}"></div>
+                    <div class="progress-bar bg-danger" style="width: {{ kp_pct }}%" title="Không phép: {{ att_today.unexcused if att_today else 0 }}"></div>
+                    <div class="progress-bar bg-info" style="width: {{ t_pct }}%" title="Trễ: {{ att_today.late if att_today else 0 }}"></div>
+                </div>
+            </div>
+
+            <div class="row g-2 text-center">
+                <div class="col-6 col-md-3">
+                    <div class="p-2 border rounded">
+                        <small class="text-muted d-block">Có mặt</small>
+                        <h5 class="fw-bold text-success mb-0">{{ att_today.present if att_today else 0 }}</h5>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-2 border rounded">
+                        <small class="text-muted d-block">Nghỉ có phép</small>
+                        <h5 class="fw-bold text-warning mb-0">{{ att_today.excused if att_today else 0 }}</h5>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-2 border rounded">
+                        <small class="text-muted d-block">Không phép</small>
+                        <h5 class="fw-bold text-danger mb-0">{{ att_today.unexcused if att_today else 0 }}</h5>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-2 border rounded">
+                        <small class="text-muted d-block">Đi trễ</small>
+                        <h5 class="fw-bold text-info mb-0">{{ att_today.late if att_today else 0 }}</h5>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Các liên kết nhanh -->
+            <div class="mt-4 pt-3 border-top">
+                <h6 class="fw-bold mb-2">Truy cập nhanh:</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{{ url_for('class_diary_index') }}" class="btn btn-sm btn-outline-info text-dark">
+                        <i class="bi bi-journal-bookmark me-1"></i> Sổ đầu bài
+                    </a>
+                    <a href="{{ url_for('class_diary_ranking') }}" class="btn btn-sm btn-outline-warning text-dark">
+                        <i class="bi bi-trophy me-1"></i> Thi đua 33 lớp
+                    </a>
+                    <a href="{{ url_for('student_import') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-file-earmark-excel me-1"></i> Nhập Excel
+                    </a>
+                    <a href="{{ url_for('classroom_list') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-grid me-1"></i> Quản lý lớp
+                    </a>
+                    <a href="{{ url_for('subject_list') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-book me-1"></i> Môn học
+                    </a>
+                    <a href="{{ url_for('settings_page') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-gear me-1"></i> Cài đặt trường
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DANH SÁCH HỌC SINH MỚI CẬP NHẬT -->
+<div class="card-table">
+    <div class="p-3 d-flex justify-content-between align-items-center border-bottom bg-white">
+        <h5 class="fw-bold mb-0">
+            <i class="bi bi-clock-history me-2 text-primary"></i>Học Sinh Mới Thêm Vào Hệ Thống
+        </h5>
+        <a href="{{ url_for('student_list') }}" class="btn btn-sm btn-primary">
+            Xem tất cả học sinh &rarr;
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Mã HS</th>
+                    <th>Họ và Tên</th>
+                    <th>Lớp</th>
+                    <th>Giới tính</th>
+                    <th>Ngày sinh</th>
+                    <th>Phụ huynh</th>
+                    <th>Điện thoại</th>
+                    <th>Trạng thái</th>
+                    <th class="text-end">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in recent_students %}
+                <tr>
+                    <td class="fw-bold text-primary">{{ s.student_code }}</td>
+                    <td class="fw-semibold">
+                        <a href="{{ url_for('student_detail', student_id=s.id) }}" class="text-decoration-none text-dark">
+                            {{ s.full_name }}
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border">{{ s.class_name or 'Chưa xếp' }}</span>
+                    </td>
+                    <td>
+                        {% if s.gender == 'Nam' %}
+                            <span class="badge badge-soft-info"><i class="bi bi-gender-male me-1"></i>Nam</span>
+                        {% else %}
+                            <span class="badge badge-soft-danger"><i class="bi bi-gender-female me-1"></i>Nữ</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ s.date_of_birth | format_date }}</td>
+                    <td>{{ s.parent_name or '---' }}</td>
+                    <td>{{ s.parent_phone or s.phone or '---' }}</td>
+                    <td>
+                        <span class="badge badge-soft-success">{{ s.status }}</span>
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('student_detail', student_id=s.id) }}" class="btn btn-sm btn-outline-secondary" title="Xem hồ sơ">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ url_for('student_edit', student_id=s.id) }}" class="btn btn-sm btn-outline-primary" title="Sửa">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" class="text-center py-4 text-muted">Chưa có học sinh nào trong cơ sở dữ liệu.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const ctx = document.getElementById('academicRankChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Tốt', 'Khá', 'Đạt', 'Chưa đạt'],
+            datasets: [{
+                data: [{{ ranks['Tốt'] }}, {{ ranks['Khá'] }}, {{ ranks['Đạt'] }}, {{ ranks['Chưa đạt'] }}],
+                backgroundColor: ['#16a34a', '#2563eb', '#eab308', '#dc2626'],
+                borderWidth: 2,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 15,
+                        font: { size: 12 }
+                    }
+                }
+            },
+            cutout: '68%'
+        }
+    });
+</script>
+{% endblock %}

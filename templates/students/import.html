@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Nhập Dữ Liệu Học Sinh Từ Excel{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{{ url_for('student_list') }}">Hồ sơ Học sinh</a></li>
+            <li class="breadcrumb-item active">Nhập từ Excel</li>
+        </ol>
+    </nav>
+    <h3 class="fw-bold">Nhập Danh Sách Học Sinh Từ File Excel</h3>
+    <p class="text-muted">Nhập hàng loạt học sinh vào lớp một cách nhanh chóng qua định dạng bảng tính tiêu chuẩn (.xlsx)</p>
+</div>
+
+<div class="row g-4">
+    <!-- FORM UPLOAD -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+            <h5 class="fw-bold text-primary mb-3">
+                <i class="bi bi-cloud-arrow-up-fill me-2"></i>Tải Lên File Excel (.xlsx)
+            </h5>
+
+            <form method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">1. Chọn lớp học cần nhập học sinh <span class="text-danger">*</span></label>
+                    <select name="class_id" class="form-select" required>
+                        <option value="">-- Chọn lớp học --</option>
+                        {% for c in classes %}
+                        <option value="{{ c.id }}">Lớp {{ c.name }} (Khối {{ c.grade_level }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">2. Chọn file Excel danh sách <span class="text-danger">*</span></label>
+                    <input type="file" name="excel_file" class="form-control" accept=".xlsx" required>
+                    <div class="form-text">Hệ thống hỗ trợ file định dạng Excel 2007 trở lên (.xlsx).</div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                    <a href="{{ url_for('student_list') }}" class="btn btn-light border">Quay lại</a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-file-earmark-check me-1"></i> Bắt đầu xử lý nhập
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- HƯỚNG DẪN & TẢI FILE MẪU -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-3">
+            <h5 class="fw-bold text-success mb-3">
+                <i class="bi bi-file-earmark-excel-fill me-2"></i>Tải File Excel Mẫu Chuẩn
+            </h5>
+            <p class="text-muted small">
+                Để tránh lỗi sai cột hoặc định dạng ngày tháng, vui lòng tải file mẫu chuẩn bên dưới, điền thông tin và tải lên hệ thống.
+            </p>
+            <a href="{{ url_for('download_student_template') }}" class="btn btn-outline-success w-100 py-2 fw-semibold">
+                <i class="bi bi-download me-2"></i>Tải Xuống File Mẫu (.xlsx)
+            </a>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+            <h6 class="fw-bold text-dark mb-2">
+                <i class="bi bi-info-circle-fill text-primary me-2"></i>Quy định các cột trong file Excel:
+            </h6>
+            <ol class="small text-muted ps-3 mb-0" style="line-height: 1.8;">
+                <li><strong>Mã học sinh:</strong> Có thể để trống (hệ thống sẽ tự động cấp mã mới). Nếu mã đã tồn tại, hệ thống sẽ tự động cập nhật thông tin.</li>
+                <li><strong>Họ và tên:</strong> Bắt buộc nhập đầy đủ họ và tên học sinh.</li>
+                <li><strong>Ngày sinh:</strong> Nhập theo định dạng chuẩn <code>YYYY-MM-DD</code> hoặc <code>DD/MM/YYYY</code>.</li>
+                <li><strong>Giới tính:</strong> Điền <code>Nam</code> hoặc <code>Nữ</code>.</li>
+                <li><strong>Thông tin phụ huynh:</strong> Họ tên và số điện thoại liên lạc của gia đình.</li>
+            </ol>
+        </div>
+    </div>
+</div>
+{% endblock %}

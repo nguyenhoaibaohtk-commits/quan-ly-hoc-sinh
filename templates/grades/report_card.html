@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block title %}Phiếu Báo Điểm - {{ student.full_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 no-print">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('student_list') }}">Học sinh</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('student_detail', student_id=student.id) }}">{{ student.full_name }}</a></li>
+                <li class="breadcrumb-item active">Phiếu Báo Điểm</li>
+            </ol>
+        </nav>
+        <h4 class="fw-bold mb-0">Phiếu Kết Quả Học Tập (Báo Điểm Học Kỳ)</h4>
+    </div>
+    <div class="d-flex gap-2">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('grade_report_card', student_id=student.id, semester=1) }}" class="btn btn-outline-primary {% if semester == 1 %}active{% endif %}">Học kỳ I</a>
+            <a href="{{ url_for('grade_report_card', student_id=student.id, semester=2) }}" class="btn btn-outline-primary {% if semester == 2 %}active{% endif %}">Học kỳ II</a>
+        </div>
+        <button onclick="window.print()" class="btn btn-success px-4 fw-bold">
+            <i class="bi bi-printer me-1"></i> In Phiếu Báo Điểm (PDF / Máy in)
+        </button>
+    </div>
+</div>
+
+<!-- KHUNG IN A4 -->
+<div class="card border shadow-sm p-4 bg-white mx-auto" style="max-width: 850px; font-family: 'Times New Roman', Times, serif;">
+    <!-- TIÊU NGỮ VÀ TÊN TRƯỜNG -->
+    <div class="row align-items-center mb-3">
+        <div class="col-6 text-center">
+            <div class="text-uppercase fw-bold" style="font-size: 13pt;">SỞ GD&ĐT HÀ NỘI</div>
+            <div class="text-uppercase fw-bold text-primary" style="font-size: 14pt;">{{ settings.get('school_name', 'TRƯỜNG THPT CHU VĂN AN') }}</div>
+            <div style="font-size: 10pt; font-style: italic;">Địa chỉ: {{ settings.get('school_address', '') }}</div>
+        </div>
+        <div class="col-6 text-center">
+            <div class="fw-bold" style="font-size: 12pt;">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+            <div class="fw-bold" style="font-size: 11pt;">Độc lập - Tự do - Hạnh phúc</div>
+            <div>-------------------</div>
+        </div>
+    </div>
+
+    <!-- TIÊU ĐỀ CHÍNH -->
+    <div class="text-center my-3">
+        <h3 class="fw-bold text-uppercase mb-1" style="font-size: 18pt;">PHIẾU KẾT QUẢ HỌC TẬP & RÈN LUYỆN</h3>
+        <div style="font-size: 12pt; font-style: italic;">HỌC KỲ {{ 'I' if semester == 1 else 'II' }} - NĂM HỌC {{ current_year.name if current_year else settings.get('current_academic_year', '2026-2027') }}</div>
+    </div>
+
+    <!-- THÔNG TIN HỌC SINH -->
+    <div class="p-3 bg-light rounded border mb-3" style="font-size: 11.5pt;">
+        <div class="row g-2">
+            <div class="col-8">
+                Họ và tên: <strong class="text-uppercase fs-6">{{ student.full_name }}</strong>
+            </div>
+            <div class="col-4">
+                Mã học sinh: <strong>{{ student.student_code }}</strong>
+            </div>
+            <div class="col-4">
+                Lớp: <strong>{{ student.class_name }}</strong>
+            </div>
+            <div class="col-4">
+                Giới tính: <strong>{{ student.gender }}</strong>
+            </div>
+            <div class="col-4">
+                Ngày sinh: <strong>{{ student.date_of_birth | format_date }}</strong>
+            </div>
+            <div class="col-8">
+                Giáo viên chủ nhiệm: <strong>{{ student.teacher_name or 'Chưa phân công' }}</strong>
+            </div>
+            <div class="col-4">
+                Phòng: <strong>{{ student.room or '---' }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- BẢNG ĐIỂM CHI TIẾT TỪNG MÔN -->
+    <div class="table-responsive mb-3">
+        <table class="table table-bordered text-center align-middle" style="font-size: 11pt;">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 40px;">STT</th>
+                    <th class="text-start">Môn học</th>
+                    <th>TX 1</th>
+                    <th>TX 2</th>
+                    <th>TX 3</th>
+                    <th>TX 4</th>
+                    <th>Giữa kỳ</th>
+                    <th>Cuối kỳ</th>
+                    <th class="fw-bold">ĐTB Môn</th>
+                    <th>Nhận xét</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for g in grades %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td class="text-start fw-semibold">{{ g.subject_name }}</td>
+                    <td>{{ g.tx1 | grade_format }}</td>
+                    <td>{{ g.tx2 | grade_format }}</td>
+                    <td>{{ g.tx3 | grade_format }}</td>
+                    <td>{{ g.tx4 | grade_format }}</td>
+                    <td>{{ g.gk | grade_format }}</td>
+                    <td>{{ g.ck | grade_format }}</td>
+                    <td class="fw-bold">{{ g.average | grade_format }}</td>
+                    <td style="font-size: 9.5pt; font-style: italic;">
+                        {% if g.average and g.average >= 8.0 %}
+                            Nắm vững kiến thức
+                        {% elif g.average and g.average >= 6.5 %}
+                            Khá, tích cực
+                        {% elif g.average and g.average >= 5.0 %}
+                            Cần cố gắng thêm
+                        {% elif g.average %}
+                            Cần bồi dưỡng
+                        {% else %}
+                            ---
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- KẾT QUẢ ĐÁNH GIÁ CHUNG & CHUYÊN CẦN -->
+    <div class="row g-3 mb-4" style="font-size: 11.5pt;">
+        <div class="col-6">
+            <div class="border p-3 rounded h-100">
+                <div class="fw-bold text-uppercase border-bottom pb-1 mb-2">Đánh Giá Xếp Loại</div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Điểm TB các môn (ĐTBhk):</span>
+                    <strong class="fs-6">{{ gpa if gpa is not none else '---' }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Học lực (Theo TT 22):</span>
+                    <strong class="fs-6 text-primary">{{ academic_rank }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Kết quả rèn luyện (Hạnh kiểm):</span>
+                    <strong class="fs-6 text-success">Tốt</strong>
+                </div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="border p-3 rounded h-100">
+                <div class="fw-bold text-uppercase border-bottom pb-1 mb-2">Tình Hình Chuyên Cần</div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Số buổi có mặt:</span>
+                    <strong>{{ att_stats.present_count if att_stats else 0 }} buổi</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Nghỉ có phép:</span>
+                    <strong>{{ att_stats.excused_absence_count if att_stats else 0 }} buổi</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Nghỉ không phép:</span>
+                    <strong class="text-danger">{{ att_stats.unexcused_absence_count if att_stats else 0 }} buổi</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Đi trễ:</span>
+                    <strong>{{ att_stats.late_count if att_stats else 0 }} lần</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ý KIẾN GVCN VÀ CHỮ KÝ -->
+    <div class="mb-4 p-2 border rounded" style="font-size: 11pt;">
+        <strong>Nhận xét của Giáo viên chủ nhiệm:</strong>
+        <div class="mt-1" style="min-height: 45px; font-style: italic;">
+            Học sinh có tinh thần học tập nghiêm túc, chấp hành tốt nội quy nhà trường và lớp học. Kính mong phụ huynh tiếp tục đồng hành và phối hợp cùng nhà trường.
+        </div>
+    </div>
+
+    <div class="row text-center mt-3" style="font-size: 11pt;">
+        <div class="col-4">
+            <div class="fw-bold mb-1">Ý KIẾN PHỤ HUYNH</div>
+            <div class="text-muted" style="font-size: 9pt; font-style: italic;">(Ký và ghi rõ họ tên)</div>
+            <div style="height: 70px;"></div>
+        </div>
+        <div class="col-4">
+            <div class="fw-bold mb-1">GIÁO VIÊN CHỦ NHIỆM</div>
+            <div class="text-muted" style="font-size: 9pt; font-style: italic;">(Ký và ghi rõ họ tên)</div>
+            <div style="height: 70px;"></div>
+            <div class="fw-bold">{{ student.teacher_name or '' }}</div>
+        </div>
+        <div class="col-4">
+            <div class="fst-italic mb-1" style="font-size: 10pt;">Hà Nội, ngày ..... tháng ..... năm 2026</div>
+            <div class="fw-bold mb-1">HIỆU TRƯỞNG</div>
+            <div class="text-muted" style="font-size: 9pt; font-style: italic;">(Ký tên và đóng dấu)</div>
+            <div style="height: 60px;"></div>
+            <div class="fw-bold">{{ settings.get('principal_name', '') }}</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

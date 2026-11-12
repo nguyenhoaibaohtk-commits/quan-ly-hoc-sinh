@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}Điểm Danh Hàng Ngày{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="fw-bold mb-1">Điểm Danh Lớp Học</h3>
+        <p class="text-muted mb-0">Theo dõi nề nếp, chuyên cần và vắng học theo từng ngày</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('attendance_report', class_id=selected_class_id) }}" class="btn btn-outline-primary">
+            <i class="bi bi-bar-chart-line me-1"></i> Báo cáo chuyên cần tháng
+        </a>
+    </div>
+</div>
+
+<!-- CHỌN LỚP VÀ NGÀY ĐIỂM DANH -->
+<div class="card border-0 shadow-sm rounded-3 p-3 mb-4 bg-white">
+    <form method="GET" action="{{ url_for('attendance_index') }}" class="row g-3 align-items-end">
+        <div class="col-md-5">
+            <label class="form-label small fw-bold">Chọn Lớp Học</label>
+            <select name="class_id" class="form-select" onchange="this.form.submit()">
+                {% for c in classes %}
+                <option value="{{ c.id }}" {% if selected_class_id == c.id %}selected{% endif %}>
+                    Lớp {{ c.name }} (Khối {{ c.grade_level }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label small fw-bold">Ngày Điểm Danh</label>
+            <input type="date" name="date" class="form-control" value="{{ selected_date }}" onchange="this.form.submit()">
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-secondary w-100">
+                <i class="bi bi-arrow-repeat me-1"></i> Tải danh sách
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- FORM ĐIỂM DANH -->
+<form method="POST" action="{{ url_for('attendance_save') }}">
+    <input type="hidden" name="class_id" value="{{ selected_class_id }}">
+    <input type="hidden" name="date" value="{{ selected_date }}">
+
+    <div class="card-table mb-4">
+        <div class="p-3 d-flex justify-content-between align-items-center border-bottom bg-white">
+            <div>
+                <h5 class="fw-bold mb-0 text-primary">
+                    <i class="bi bi-calendar-check me-2"></i>Điểm Danh: Lớp {{ current_class.name if current_class else '' }} - Ngày: {{ selected_date | format_date }}
+                </h5>
+                <small class="text-muted">Đánh dấu nhanh tình trạng chuyên cần của học sinh</small>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" id="btnMarkAllPresent" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-check2-all me-1"></i> Tất cả có mặt
+                </button>
+                <button type="submit" class="btn btn-primary btn-sm px-3 fw-bold">
+                    <i class="bi bi-floppy-fill me-1"></i> Lưu điểm danh
+                </button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">STT</th>
+                        <th style="width: 110px;">Mã HS</th>
+                        <th>Họ và Tên</th>
+                        <th>Giới tính</th>
+                        <th class="text-center" style="width: 360px;">Trạng thái điểm danh</th>
+                        <th>Lý do / Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in records %}
+                    {% set stt = r.status if r.status else 'P' %}
+                    <tr>
+                        <td class="text-muted">{{ loop.index }}</td>
+                        <td class="fw-bold text-muted">{{ r.student_code }}</td>
+                        <td class="fw-semibold">
+                            {{ r.full_name }}
+                            <input type="hidden" name="student_id" value="{{ r.student_id }}">
+                        </td>
+                        <td>
+                            {% if r.gender == 'Nam' %}
+                                <span class="badge badge-soft-info">Nam</span>
+                            {% else %}
+                                <span class="badge badge-soft-danger">Nữ</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm w-100 att-radio-group" role="group">
+                                <input type="radio" class="btn-check" name="status_{{ r.student_id }}" id="p_{{ r.student_id }}" value="P" {% if stt == 'P' %}checked{% endif %}>
+                                <label class="btn btn-outline-success" for="p_{{ r.student_id }}" title="Có mặt">
+                                    <i class="bi bi-check-circle me-1"></i>Có mặt
+                                </label>
+
+                                <input type="radio" class="btn-check" name="status_{{ r.student_id }}" id="cp_{{ r.student_id }}" value="CP" {% if stt == 'CP' %}checked{% endif %}>
+                                <label class="btn btn-outline-warning" for="cp_{{ r.student_id }}" title="Nghỉ có phép">
+                                    <i class="bi bi-envelope me-1"></i>Có phép
+                                </label>
+
+                                <input type="radio" class="btn-check" name="status_{{ r.student_id }}" id="kp_{{ r.student_id }}" value="KP" {% if stt == 'KP' %}checked{% endif %}>
+                                <label class="btn btn-outline-danger" for="kp_{{ r.student_id }}" title="Nghỉ không phép">
+                                    <i class="bi bi-x-circle me-1"></i>Không phép
+                                </label>
+
+                                <input type="radio" class="btn-check" name="status_{{ r.student_id }}" id="t_{{ r.student_id }}" value="T" {% if stt == 'T' %}checked{% endif %}>
+                                <label class="btn btn-outline-info" for="t_{{ r.student_id }}" title="Đi trễ">
+                                    <i class="bi bi-clock me-1"></i>Đi trễ
+                                </label>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" name="note_{{ r.student_id }}" class="form-control form-control-sm" placeholder="Ghi chú (ốm, việc bận...)" value="{{ r.note or '' }}">
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            Chưa có học sinh nào trong lớp này.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="p-3 d-flex justify-content-end bg-white border-top">
+            <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm">
+                <i class="bi bi-floppy-fill me-1"></i> Lưu điểm danh ngày {{ selected_date | format_date }}
+            </button>
+        </div>
+    </div>
+</form>
+{% endblock %}

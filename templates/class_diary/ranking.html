@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}Bảng Xếp Hạng Thi Đua Sổ Đầu Bài{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="fw-bold mb-1">
+            <i class="bi bi-trophy-fill text-warning me-2"></i>Bảng Thi Đua Nề Nếp & Điểm Sổ Đầu Bài
+        </h3>
+        <p class="text-muted mb-0">
+            Xếp hạng thi đua giữa 33 lớp trong tuần: Từ Thứ Hai ({{ ranking_data.week_days[0].formatted_date }}) đến Thứ Bảy ({{ ranking_data.week_days[-1].formatted_date }})
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('class_diary_index', date=base_date) }}" class="btn btn-outline-primary">
+            <i class="bi bi-journal-bookmark me-1"></i> Xem chi tiết sổ đầu bài
+        </a>
+    </div>
+</div>
+
+<!-- CHỌN TUẦN -->
+<div class="card border-0 shadow-sm rounded-3 p-3 mb-4 bg-white">
+    <form method="GET" action="{{ url_for('class_diary_ranking') }}" class="row g-3 align-items-end">
+        <div class="col-md-6">
+            <label class="form-label small fw-bold">Chọn Ngày Của Tuần Cần Xem Thi Đua</label>
+            <input type="date" name="date" class="form-control" value="{{ base_date }}" onchange="this.form.submit()">
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-funnel me-1"></i> Xem bảng xếp hạng
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- TOP 3 LỚP XUẤT SẮC -->
+<div class="row g-3 mb-4">
+    {% set top3 = ranking_data.ranking[:3] %}
+    {% if top3|length >= 1 %}
+    <!-- HẠNG 1 -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow rounded-3 p-3 text-center bg-white border-top border-4 border-warning h-100">
+            <div class="fs-1 text-warning mb-1">🥇</div>
+            <span class="badge bg-warning text-dark fw-bold mb-2">HẠNG NHẤT TUẦN</span>
+            <h4 class="fw-bold text-dark mb-1">Lớp {{ top3[0].name }}</h4>
+            <div class="text-muted small mb-2">GVCN: {{ top3[0].teacher_name or '---' }}</div>
+            <div class="p-2 bg-warning-subtle rounded-3 mt-auto">
+                <div class="fw-bold fs-5 text-dark">ĐTB: {{ top3[0].avg_score }} / 10</div>
+                <small class="text-muted">Tổng điểm: {{ top3[0].total_score }} | Tiết Tốt: {{ top3[0].count_tot }}</small>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if top3|length >= 2 %}
+    <!-- HẠNG 2 -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow rounded-3 p-3 text-center bg-white border-top border-4 border-secondary h-100">
+            <div class="fs-1 text-secondary mb-1">🥈</div>
+            <span class="badge bg-secondary text-white fw-bold mb-2">HẠNG NHÌ TUẦN</span>
+            <h4 class="fw-bold text-dark mb-1">Lớp {{ top3[1].name }}</h4>
+            <div class="text-muted small mb-2">GVCN: {{ top3[1].teacher_name or '---' }}</div>
+            <div class="p-2 bg-light rounded-3 mt-auto border">
+                <div class="fw-bold fs-5 text-dark">ĐTB: {{ top3[1].avg_score }} / 10</div>
+                <small class="text-muted">Tổng điểm: {{ top3[1].total_score }} | Tiết Tốt: {{ top3[1].count_tot }}</small>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if top3|length >= 3 %}
+    <!-- HẠNG 3 -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow rounded-3 p-3 text-center bg-white border-top border-4 border-danger h-100">
+            <div class="fs-1 text-danger mb-1">🥉</div>
+            <span class="badge bg-danger text-white fw-bold mb-2">HẠNG BA TUẦN</span>
+            <h4 class="fw-bold text-dark mb-1">Lớp {{ top3[2].name }}</h4>
+            <div class="text-muted small mb-2">GVCN: {{ top3[2].teacher_name or '---' }}</div>
+            <div class="p-2 bg-light rounded-3 mt-auto border">
+                <div class="fw-bold fs-5 text-dark">ĐTB: {{ top3[2].avg_score }} / 10</div>
+                <small class="text-muted">Tổng điểm: {{ top3[2].total_score }} | Tiết Tốt: {{ top3[2].count_tot }}</small>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- BẢNG ĐẦY ĐỦ 33 LỚP -->
+<div class="card-table">
+    <div class="p-3 d-flex justify-content-between align-items-center border-bottom bg-white">
+        <h5 class="fw-bold mb-0 text-primary">
+            <i class="bi bi-list-ol me-2"></i>Bảng Tổng Sắp Thi Đua Cả Trường (33 Lớp)
+        </h5>
+        <span class="badge bg-light text-dark border px-3 py-2">
+            Đánh giá theo điểm số sổ đầu bài (Thang 10)
+        </span>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle text-center">
+            <thead>
+                <tr>
+                    <th style="width: 70px;">Thứ hạng</th>
+                    <th style="width: 100px;">Lớp</th>
+                    <th>Khối</th>
+                    <th class="text-start">Giáo viên chủ nhiệm</th>
+                    <th>Số tiết đã ghi</th>
+                    <th class="text-primary fw-bold">Điểm TB tiết</th>
+                    <th class="fw-bold">Tổng điểm</th>
+                    <th class="text-success">Tiết Tốt (&ge;9)</th>
+                    <th class="text-primary">Tiết Khá (7-8.9)</th>
+                    <th class="text-warning">Tiết TB (5-6.9)</th>
+                    <th class="text-danger">Tiết Yếu (&lt;5)</th>
+                    <th class="text-end" style="width: 120px;">Sổ đầu bài</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in ranking_data.ranking %}
+                <tr {% if r.rank <= 3 %}class="bg-light fw-semibold"{% endif %}>
+                    <td>
+                        {% if r.rank == 1 %}
+                            <span class="badge bg-warning text-dark fs-6">🥇 1</span>
+                        {% elif r.rank == 2 %}
+                            <span class="badge bg-secondary fs-6">🥈 2</span>
+                        {% elif r.rank == 3 %}
+                            <span class="badge bg-danger fs-6">🥉 3</span>
+                        {% else %}
+                            <span class="text-muted fw-bold">{{ r.rank }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="fw-bold text-dark">Lớp {{ r.name }}</td>
+                    <td>
+                        <span class="badge bg-light text-dark border">Khối {{ r.grade_level }}</span>
+                    </td>
+                    <td class="text-start">{{ r.teacher_name or '---' }}</td>
+                    <td>{{ r.total_recorded }} tiết</td>
+                    <td class="text-primary fw-bold fs-6">{{ r.avg_score }}</td>
+                    <td class="fw-bold">{{ r.total_score }}</td>
+                    <td class="text-success fw-bold">{{ r.count_tot }}</td>
+                    <td class="text-primary">{{ r.count_kha }}</td>
+                    <td class="text-warning">{{ r.count_tb }}</td>
+                    <td class="text-danger">{{ r.count_yeu }}</td>
+                    <td class="text-end">
+                        <a href="{{ url_for('class_diary_index', class_id=r.id, date=base_date) }}" class="btn btn-sm btn-outline-primary" title="Xem chi tiết sổ đầu bài lớp">
+                            <i class="bi bi-eye"></i> Xem sổ
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

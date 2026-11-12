@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}Lớp {{ classroom.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('classroom_list') }}">Danh sách Lớp học</a></li>
+                <li class="breadcrumb-item active">Lớp {{ classroom.name }}</li>
+            </ol>
+        </nav>
+        <h3 class="fw-bold mb-0">Lớp {{ classroom.name }} - Khối {{ classroom.grade_level }} ({{ classroom.year_name }})</h3>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('student_export', class_id=classroom.id) }}" class="btn btn-outline-success">
+            <i class="bi bi-file-earmark-excel me-1"></i> Xuất danh sách Excel
+        </a>
+        <a href="{{ url_for('grade_input', class_id=classroom.id) }}" class="btn btn-outline-primary">
+            <i class="bi bi-pencil-square me-1"></i> Vào điểm lớp này
+        </a>
+        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editClassModal">
+            <i class="bi bi-gear me-1"></i> Sửa lớp
+        </button>
+    </div>
+</div>
+
+<!-- THÔNG TIN TỔNG QUAN LỚP HỌC -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+            <span class="text-muted small">Giáo viên chủ nhiệm</span>
+            <h5 class="fw-bold text-dark mt-1 mb-0">{{ classroom.teacher_name or 'Chưa phân công' }}</h5>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+            <span class="text-muted small">Phòng học</span>
+            <h5 class="fw-bold text-dark mt-1 mb-0">{{ classroom.room or '---' }}</h5>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+            <span class="text-muted small">Sĩ số học sinh</span>
+            <h5 class="fw-bold text-primary mt-1 mb-0">{{ students | length }} học sinh</h5>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+            <span class="text-muted small">Chất lượng học tập (Tốt & Khá)</span>
+            <h5 class="fw-bold text-success mt-1 mb-0">
+                {{ stats.rank_counts.get('Tốt', 0) + stats.rank_counts.get('Khá', 0) }} / {{ students | length }} HS
+            </h5>
+        </div>
+    </div>
+</div>
+
+<!-- DANH SÁCH HỌC SINH CỦA LỚP -->
+<div class="card-table">
+    <div class="p-3 d-flex justify-content-between align-items-center border-bottom bg-white">
+        <h5 class="fw-bold mb-0">
+            <i class="bi bi-people-fill me-2 text-primary"></i>Danh Sách Học Sinh Trong Lớp
+        </h5>
+        <a href="{{ url_for('student_create') }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-person-plus me-1"></i> Thêm học sinh vào lớp
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">STT</th>
+                    <th>Mã HS</th>
+                    <th>Họ và Tên</th>
+                    <th>Giới tính</th>
+                    <th>Ngày sinh</th>
+                    <th>SĐT Học sinh</th>
+                    <th>Phụ huynh</th>
+                    <th>SĐT Phụ huynh</th>
+                    <th>Trạng thái</th>
+                    <th class="text-end">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in students %}
+                <tr>
+                    <td class="text-center text-muted">{{ loop.index }}</td>
+                    <td class="fw-bold text-primary">{{ s.student_code }}</td>
+                    <td class="fw-semibold">
+                        <a href="{{ url_for('student_detail', student_id=s.id) }}" class="text-decoration-none text-dark">
+                            {{ s.full_name }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if s.gender == 'Nam' %}
+                            <span class="badge badge-soft-info">Nam</span>
+                        {% else %}
+                            <span class="badge badge-soft-danger">Nữ</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ s.date_of_birth | format_date }}</td>
+                    <td>{{ s.phone or '---' }}</td>
+                    <td>{{ s.parent_name or '---' }}</td>
+                    <td>{{ s.parent_phone or '---' }}</td>
+                    <td>
+                        {% if s.status == 'Đang học' %}
+                            <span class="badge badge-soft-success">Đang học</span>
+                        {% else %}
+                            <span class="badge badge-soft-warning">{{ s.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('student_detail', student_id=s.id) }}" class="btn btn-sm btn-outline-secondary" title="Xem hồ sơ">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ url_for('student_edit', student_id=s.id) }}" class="btn btn-sm btn-outline-primary" title="Sửa">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="10" class="text-center py-5 text-muted">
+                        Chưa có học sinh nào trong lớp này.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODAL SỬA THÔNG TIN LỚP -->
+<div class="modal fade" id="editClassModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('classroom_edit', class_id=classroom.id) }}">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-primary">Sửa Thông Tin Lớp {{ classroom.name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tên lớp học</label>
+                        <input type="text" name="name" class="form-control" value="{{ classroom.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Khối lớp</label>
+                        <select name="grade_level" class="form-select">
+                            <option value="10" {% if classroom.grade_level == 10 %}selected{% endif %}>Khối 10</option>
+                            <option value="11" {% if classroom.grade_level == 11 %}selected{% endif %}>Khối 11</option>
+                            <option value="12" {% if classroom.grade_level == 12 %}selected{% endif %}>Khối 12</option>
+                            <option value="6" {% if classroom.grade_level == 6 %}selected{% endif %}>Khối 6</option>
+                            <option value="7" {% if classroom.grade_level == 7 %}selected{% endif %}>Khối 7</option>
+                            <option value="8" {% if classroom.grade_level == 8 %}selected{% endif %}>Khối 8</option>
+                            <option value="9" {% if classroom.grade_level == 9 %}selected{% endif %}>Khối 9</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Giáo viên chủ nhiệm</label>
+                        <input type="text" name="teacher_name" class="form-control" value="{{ classroom.teacher_name or '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Phòng học</label>
+                        <input type="text" name="room" class="form-control" value="{{ classroom.room or '' }}">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-primary px-4">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

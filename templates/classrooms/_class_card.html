@@ -1,0 +1,45 @@
+<div class="card border-0 shadow-sm rounded-3 h-100 bg-white p-3">
+    <div class="d-flex justify-content-between align-items-start mb-2">
+        <div>
+            {% if c.grade_level == 10 %}
+                <span class="badge bg-primary-subtle text-primary fw-bold">Khối 10</span>
+            {% elif c.grade_level == 11 %}
+                <span class="badge bg-success-subtle text-success fw-bold">Khối 11</span>
+            {% else %}
+                <span class="badge bg-danger-subtle text-danger fw-bold">Khối 12</span>
+            {% endif %}
+            <h4 class="fw-bold text-dark mt-1 mb-0">Lớp {{ c.name }}</h4>
+        </div>
+        <span class="badge bg-light text-muted border">{{ c.year_name }}</span>
+    </div>
+
+    <div class="py-2 border-top border-bottom my-2 small">
+        <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted"><i class="bi bi-person-badge me-1"></i>GVCN:</span>
+            <span class="fw-semibold text-truncate" style="max-width: 170px;" title="{{ c.teacher_name or '' }}">{{ c.teacher_name or 'Chưa phân công' }}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted"><i class="bi bi-door-closed me-1"></i>Phòng học:</span>
+            <span class="fw-semibold">{{ c.room or '---' }}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+            <span class="text-muted"><i class="bi bi-people me-1"></i>Sĩ số:</span>
+            <span class="fw-bold text-primary">{{ c.total_students }} HS (Nam: {{ c.male_count }}, Nữ: {{ c.female_count }})</span>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-auto pt-2">
+        <a href="{{ url_for('classroom_detail', class_id=c.id) }}" class="btn btn-sm btn-outline-primary flex-grow-1">
+            <i class="bi bi-eye me-1"></i> Chi tiết
+        </a>
+        <a href="{{ url_for('class_diary_index', class_id=c.id) }}" class="btn btn-sm btn-outline-info text-dark" title="Sổ đầu bài lớp">
+            <i class="bi bi-journal-bookmark"></i> Sổ đầu bài
+        </a>
+        <a href="{{ url_for('student_export', class_id=c.id) }}" class="btn btn-sm btn-outline-success" title="Xuất danh sách Excel">
+            <i class="bi bi-file-earmark-excel"></i>
+        </a>
+        <a href="{{ url_for('grade_input', class_id=c.id) }}" class="btn btn-sm btn-outline-secondary" title="Vào điểm">
+            <i class="bi bi-pencil-square"></i>
+        </a>
+    </div>
+</div>
