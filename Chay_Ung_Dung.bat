@@ -1,27 +1,35 @@
 @echo off
 chcp 65001 >nul
-title Hệ Thống Quản Lý Học Sinh & Sổ Đầu Bài
+cd /d "%~dp0"
+title He Thong Quan Ly Hoc Sinh va So Dau Bai THPT
+
 echo ================================================================
-echo        KHỞI ĐỘNG HỆ THỐNG QUẢN LÝ HỌC SINH (SCHOOLFLOW)
+echo        KHOI DONG HE THONG QUAN LY HOC SINH (SCHOOLFLOW)
 echo ================================================================
 echo.
-echo [1/3] Đang kiểm tra cơ sở dữ liệu và dữ liệu sổ đầu bài...
+echo [*] Dang kiem tra co so du lieu...
 python database.py
-echo.
-echo [2/3] Địa chỉ IP mạng nội bộ của máy bạn:
-for /f "tokens=4" %%a in ('route print ^| findstr 0.0.0.0 ^| findstr /v "0.0.0.0.*0.0.0.0"') do (
-    set LOCAL_IP=%%a
+if %errorlevel% neq 0 (
+    echo.
+    echo [LOI] Khong the ket noi co so du lieu Python!
+    echo Vui long kiem tra lai moi truong Python tren may.
+    pause
+    exit /b 1
 )
-echo       -> Dành cho máy này:          http://127.0.0.1:5000
-echo       -> Dành cho đồng nghiệp/Wi-Fi: http://%LOCAL_IP%:5000
+
 echo.
-echo [3/3] Đang khởi động máy chủ Flask (host: 0.0.0.0:5000)...
-echo       Trình duyệt sẽ tự động mở trong giây lát...
-echo       (Nhấn Ctrl+C để dừng ứng dụng)
+echo [*] Dang khoi dong may chu ung dung...
+echo [*] Trinh duyet se tu dong mo ngay khi may chu san sang...
+echo.
 echo ================================================================
 echo.
 
-start "" "http://127.0.0.1:5000"
 python app.py
 
-pause
+if %errorlevel% neq 0 (
+    echo.
+    echo ================================================================
+    echo [LOI] Ung dung da dung lai voi ma loi: %errorlevel%
+    echo ================================================================
+    pause
+)

@@ -1060,15 +1060,41 @@ def get_local_ip():
     except Exception:
         return "127.0.0.1"
 
+def find_available_port(preferred_port=5000):
+    import socket
+    for p in [preferred_port, 5050, 5001, 8080]:
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind(('0.0.0.0', p))
+                return p
+        except OSError:
+            continue
+    return preferred_port
+
+def open_browser(port):
+    import time
+    import webbrowser
+    time.sleep(1.2)
+    try:
+        webbrowser.open(f"http://127.0.0.1:{port}")
+    except Exception:
+        pass
+
 if __name__ == '__main__':
+    import threading
     init_db()
     seed_sample_data()
     lesson_diary_service.seed_sample_diary()
+    
+    port = find_available_port(5000)
     local_ip = get_local_ip()
+    
+    threading.Thread(target=open_browser, args=(port,), daemon=True).start()
+
     print("="*65)
     print("  ỨNG DỤNG QUẢN LÝ HỌC SINH & SỔ ĐẦU BÀI ĐANG CHẠY...")
-    print(f"  [1] Truy cập từ máy tính này:  http://127.0.0.1:5000")
-    print(f"  [2] Chia sẻ qua Wi-Fi / LAN:   http://{local_ip}:5000")
-    print("  (Các thầy cô kết nối cùng Wi-Fi chỉ cần mở link [2] trên điện thoại/laptop)")
+    print(f"  [1] Truy cập từ máy tính này:  http://127.0.0.1:{port}")
+    print(f"  [2] Chia sẻ qua Wi-Fi / LAN:   http://{local_ip}:{port}")
+    print("  (Các thầy cô kết nối cùng Wi-Fi có thể mở link [2] trên điện thoại/laptop)")
     print("="*65)
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=False)
